@@ -1,0 +1,15 @@
+language: ruby
+rvm:
+  - 2.6
+  - 2.5
+before_install:
+  - gem install bundler
+  - mysql -e 'CREATE DATABASE ci_test;'
+  - psql -c 'CREATE DATABASE ci_test;' -U postgres
+services:
+  - postgresql
+  - mysql
+env:
+  - DATABASE_URL=sqlite3:///tmp/ci_test.sqlite3
+  - DATABASE_URL=mysql2://travis@127.0.0.1/ci_test
+  - DATABASE_URL=postgresql://127.0.0.1/ci_test

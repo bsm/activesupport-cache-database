@@ -1,0 +1,7 @@
+inherit_from:
+  - https://gitlab.com/bsm/misc/raw/master/rubocop/default.yml
+
+AllCops:
+  TargetRubyVersion: "2.5"
+Security/MarshalLoad:
+  Enabled: false
