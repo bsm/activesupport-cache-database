@@ -5,7 +5,7 @@ Gem::Specification.new do |s|
   s.email         = ['info@blacksquaremedia.com']
   s.summary       = %(ActiveSupport::Cache::Store implementation backed by ActiveRecord.)
   s.description   = %(Use your DB as a cache store)
-  s.homepage      = 'https://github.com/bsm/record-cache-store'
+  s.homepage      = 'https://github.com/bsm/activesupport-cache-database'
   s.license       = 'Apache-2.0'
 
   s.files         = `git ls-files -z`.split("\x0").reject {|f| f.match(%r{^spec/}) }
