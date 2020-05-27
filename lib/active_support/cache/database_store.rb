@@ -15,13 +15,13 @@ module ActiveSupport
 
       # param [Hash] options options
       # option options [Class] :model model class. Default: ActiveSupport::Cache::DatabaseStore::Model
-      def initialize(options=nil)
+      def initialize(options = nil)
         @model = (options || {}).delete(:model) || Model
         super(options)
       end
 
       # Preemptively iterates through all stored keys and removes the ones which have expired.
-      def cleanup(options=nil)
+      def cleanup(options = nil)
         options = merged_options(options)
         scope = @model.expired
         if (namespace = options[:namespace])
@@ -31,7 +31,7 @@ module ActiveSupport
       end
 
       # Clears the entire cache. Be careful with this method.
-      def clear(options=nil)
+      def clear(options = nil)
         options = merged_options(options)
         if (namespace = options[:namespace])
           @model.namespaced(namespace).delete_all
@@ -42,7 +42,7 @@ module ActiveSupport
       end
 
       # Calculates the number of entries in the cache.
-      def count(options=nil)
+      def count(options = nil)
         options = merged_options(options)
         scope = @model.all
         if (namespace = options[:namespace])
@@ -54,24 +54,24 @@ module ActiveSupport
 
       private
 
-      def normalize_key(name, options=nil)
+      def normalize_key(name, options = nil)
         key = super.to_s
         raise ArgumentError, 'Namespaced key exceeds the length limit' if key && key.bytesize > 255
 
         key
       end
 
-      def read_entry(key, _options=nil)
+      def read_entry(key, _options = nil)
         from_record @model.where(key: key).first
       end
 
-      def write_entry(key, entry, _options=nil)
+      def write_entry(key, entry, _options = nil)
         record = @model.where(key: key).first_or_initialize
         expires_at = Time.zone.at(entry.expires_at) if entry.expires_at
         record.update! value: Marshal.dump(entry.value), version: entry.version.presence, expires_at: expires_at
       end
 
-      def delete_entry(key, _options=nil)
+      def delete_entry(key, _options = nil)
         @model.where(key: key).destroy_all
       end
 
@@ -89,7 +89,7 @@ module ActiveSupport
           next if entry.nil?
 
           if entry.expired?
-            delete_entry(rec.key, options)
+            delete_entry(rec.key, **options)
           elsif entry.mismatched?(version)
             # Skip mismatched versions
           else
