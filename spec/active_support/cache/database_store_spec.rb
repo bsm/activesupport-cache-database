@@ -5,56 +5,56 @@ RSpec.describe ActiveSupport::Cache::DatabaseStore do
     described_class.new expires_in: 60
   end
 
-  it 'should read and write strings' do
+  it 'reads and write strings' do
     expect(subject.write('foo', 'bar')).to be_truthy
     expect(subject.read('foo')).to eq('bar')
   end
 
-  it 'should read and write hash' do
+  it 'reads and write hash' do
     expect(subject.write('foo', a: 'b')).to be_truthy
     expect(subject.read('foo')).to eq(a: 'b')
   end
 
-  it 'should read and write integer' do
+  it 'reads and write integer' do
     expect(subject.write('foo', 1)).to be_truthy
     expect(subject.read('foo')).to eq(1)
   end
 
-  it 'should read and write nil' do
+  it 'reads and write nil' do
     expect(subject.write('foo', nil)).to be_truthy
     expect(subject.read('foo')).to eq(nil)
   end
 
-  it 'should read and write false' do
+  it 'reads and write false' do
     expect(subject.write('foo', false)).to be_truthy
     expect(subject.read('foo')).to eq(false)
   end
 
-  it 'should overwrite' do
+  it 'overwrites' do
     expect(subject.write('foo', 'bar')).to be_truthy
     expect(subject.write('foo', 'baz')).to be_truthy
     expect(subject.read('foo')).to eq('baz')
   end
 
-  it 'should support exist?' do
+  it 'supports exist?' do
     subject.write('foo', 'bar')
-    expect(subject.exist?('foo')).to be_truthy
-    expect(subject.exist?('bar')).to be_falsey
+    expect(subject).to exist('foo')
+    expect(subject).not_to exist('bar')
   end
 
-  it 'should support nil exist?' do
+  it 'supports nil exist?' do
     subject.write('foo', nil)
-    expect(subject.exist?('foo')).to be_truthy
+    expect(subject).to exist('foo')
   end
 
-  it 'should support delete' do
+  it 'supports delete' do
     subject.write('foo', 'bar')
-    expect(subject.exist?('foo')).to be_truthy
+    expect(subject).to exist('foo')
     expect(subject.delete('foo')).to be_truthy
-    expect(subject.exist?('foo')).to be_falsey
+    expect(subject).not_to exist('foo')
   end
 
-  it 'should support expires_in' do
+  it 'supports expires_in' do
     time = Time.local(2008, 4, 24)
     allow(Time).to receive(:now).and_return(time)
 
@@ -68,7 +68,7 @@ RSpec.describe ActiveSupport::Cache::DatabaseStore do
     expect(subject.read('foo')).to be_nil
   end
 
-  it 'should support long keys' do
+  it 'supports long keys' do
     key = 'x' * 255
     expect(subject.write(key, 'bar')).to be_truthy
     expect(subject.read(key)).to eq('bar')
@@ -82,7 +82,7 @@ RSpec.describe ActiveSupport::Cache::DatabaseStore do
   end
 
   describe '#cleanup' do
-    it 'should delete expired' do
+    it 'deletes expired' do
       time = Time.now
       subject.write('foo', 'bar', expires_in: 10)
       subject.write('fud', 'biz', expires_in: 20)
@@ -96,7 +96,7 @@ RSpec.describe ActiveSupport::Cache::DatabaseStore do
       expect(subject.read('fud')).to eq('biz')
     end
 
-    it 'should support namespace' do
+    it 'supports namespace' do
       time = Time.now
       subject.write('foo', 'bar', expires_in: 10, namespace: 'x')
       subject.write('foo', 'biz', expires_in: 10, namespace: 'y')
@@ -112,7 +112,7 @@ RSpec.describe ActiveSupport::Cache::DatabaseStore do
   end
 
   describe '#clear' do
-    it 'should remove all entries' do
+    it 'removes all entries' do
       subject.write('foo', 'bar')
       subject.write('fud', 'biz')
       expect(subject.clear).to be_truthy
@@ -120,7 +120,7 @@ RSpec.describe ActiveSupport::Cache::DatabaseStore do
       expect(subject.read('fud')).to be_nil
     end
 
-    it 'should support namespace' do
+    it 'supports namespace' do
       subject.write('foo', 'bar', namespace: 'x')
       subject.write('foo', 'biz', namespace: 'y')
       expect(subject.count).to eq(2)
@@ -131,19 +131,19 @@ RSpec.describe ActiveSupport::Cache::DatabaseStore do
   end
 
   describe '#fetch' do
-    it 'should support cache hit' do
+    it 'supports cache hit' do
       subject.write('foo', 'bar')
       expect(subject).not_to receive(:write)
 
       expect(subject.fetch('foo') { 'baz' }).to eq('bar')
     end
 
-    it 'should support cache miss' do
+    it 'supports cache miss' do
       expect(subject).to receive(:write).with('foo', 'baz', instance_of(Hash))
       expect(subject.fetch('foo') { 'baz' }).to eq('baz')
     end
 
-    it 'should pass key to block on cache miss' do
+    it 'passes key to block on cache miss' do
       cache_miss = false
       expect(subject.fetch('foo') {|key| cache_miss = true; key.length }).to eq(3)
       expect(cache_miss).to be_truthy
@@ -153,32 +153,32 @@ RSpec.describe ActiveSupport::Cache::DatabaseStore do
       expect(cache_miss).to be_falsey
     end
 
-    it 'should support forced cache miss' do
+    it 'supports forced cache miss' do
       subject.write('foo', 'bar')
       expect(subject).not_to receive(:read)
 
       expect(subject.fetch('foo', force: true) { 'baz' }).to eq('baz')
     end
 
-    it 'should support nil values' do
+    it 'supports nil values' do
       subject.write('foo', nil)
       expect(subject).not_to receive(:write)
 
       expect(subject.fetch('foo') { 'baz' }).to be_nil
     end
 
-    it 'should support skip_nil option' do
+    it 'supports skip_nil option' do
       expect(subject).not_to receive(:write)
       expect(subject.fetch('foo', skip_nil: true) { nil }).to be_nil
-      expect(subject.exist?('foo')).to be_falsey
+      expect(subject).not_to exist('foo')
     end
 
-    it 'should support forced cache miss with block' do
+    it 'supports forced cache miss with block' do
       subject.write('foo', 'bar')
       expect(subject.fetch('foo', force: true) { 'baz' }).to eq('baz')
     end
 
-    it 'should support forced cache miss without block' do
+    it 'supports forced cache miss without block' do
       subject.write('foo', 'bar')
       expect { subject.fetch('foo', force: true) }.to raise_error(ArgumentError)
       expect(subject.read('foo')).to eq('bar')
@@ -186,14 +186,14 @@ RSpec.describe ActiveSupport::Cache::DatabaseStore do
   end
 
   describe '#read_multi' do
-    it 'should support read_multi' do
+    it 'supports read_multi' do
       subject.write('foo', 'bar')
       subject.write('fu', 'baz')
       subject.write('fud', 'biz')
       expect(subject.read_multi('foo', 'fu')).to eq('foo' => 'bar', 'fu' => 'baz')
     end
 
-    it 'should support expires' do
+    it 'supports expires' do
       time = Time.now
       subject.write('foo', 'bar', expires_in: 10)
       subject.write('fu', 'baz')
@@ -205,7 +205,7 @@ RSpec.describe ActiveSupport::Cache::DatabaseStore do
   end
 
   describe '#fetch_multi' do
-    it 'should support fetch_multi' do
+    it 'supports fetch_multi' do
       subject.write('foo', 'bar')
       subject.write('fud', 'biz')
       values = subject.fetch_multi('foo', 'fu', 'fud') {|v| v * 2 }
@@ -214,7 +214,7 @@ RSpec.describe ActiveSupport::Cache::DatabaseStore do
       expect(subject.read('fu')).to eq('fufu')
     end
 
-    it 'should support without expires_in' do
+    it 'supports without expires_in' do
       subject.write('foo', 'bar')
       subject.write('fud', 'biz')
       values = subject.fetch_multi('foo', 'fu', 'fud', expires_in: nil) {|v| v * 2 }
@@ -223,7 +223,7 @@ RSpec.describe ActiveSupport::Cache::DatabaseStore do
       expect(subject.read('fu')).to eq('fufu')
     end
 
-    it 'should support with objects' do
+    it 'supports with objects' do
       cache_struct = Struct.new(:cache_key, :title)
       foo = cache_struct.new('foo', 'FOO!')
       bar = cache_struct.new('bar')
@@ -233,19 +233,19 @@ RSpec.describe ActiveSupport::Cache::DatabaseStore do
       expect(values).to eq(foo => 'FOO!', bar => 'BAM!')
     end
 
-    it 'should support ordered names' do
+    it 'supports ordered names' do
       subject.write('bam', 'BAM')
       values = subject.fetch_multi('foo', 'bar', 'bam', &:upcase)
       expect(values.keys).to eq(%w[foo bar bam])
     end
 
-    it 'should raise without block' do
+    it 'raises without block' do
       expect { subject.fetch_multi('foo') }.to raise_error(ArgumentError)
     end
   end
 
   describe 'cache key' do
-    it 'should support cache keys' do
+    it 'supports cache keys' do
       obj = Object.new
       def obj.cache_key
         :foo
@@ -254,16 +254,17 @@ RSpec.describe ActiveSupport::Cache::DatabaseStore do
       expect(subject.read('foo')).to eq('bar')
     end
 
-    it 'should support to_param keys' do
-      obj = Object.new
-      def obj.to_param
-        :foo
-      end
+    it 'supports to_param keys' do
+      obj = Class.new do
+        def to_param
+          'foo'
+        end
+      end.new
       subject.write(obj, 'bar')
       expect(subject.read('foo')).to eq('bar')
     end
 
-    it 'should support unversioned keys' do
+    it 'supports unversioned keys' do
       obj = Object.new
       def obj.cache_key
         :foo
@@ -276,42 +277,42 @@ RSpec.describe ActiveSupport::Cache::DatabaseStore do
       expect(subject.read('foo')).to eq('bar')
     end
 
-    it 'should support array keys' do
+    it 'supports array keys' do
       subject.write([:fu, 'foo'], 'bar')
       expect(subject.read('fu/foo')).to eq('bar')
     end
 
-    it 'should support hash keys' do
+    it 'supports hash keys' do
       subject.write({ foo: 1, fu: 2 }, 'bar')
       expect(subject.read('foo=1/fu=2')).to eq('bar')
     end
 
-    it 'should be case sensitive' do
+    it 'is case sensitive' do
       subject.write('foo', 'bar')
       expect(subject.read('FOO')).to be_nil
     end
   end
 
   describe 'with version' do
-    it 'should support fetch/read' do
+    it 'supports fetch/read' do
       subject.fetch('foo', version: 1) { 'bar' }
       expect(subject.read('foo', version: 1)).to eq('bar')
       expect(subject.read('foo', version: 2)).to be_nil
     end
 
-    it 'should support write/read' do
+    it 'supports write/read' do
       subject.write('foo', 'bar', version: 1)
       expect(subject.read('foo', version: 1)).to eq('bar')
       expect(subject.read('foo', version: 2)).to be_nil
     end
 
-    it 'should support exists' do
+    it 'supports exists' do
       subject.write('foo', 'bar', version: 1)
-      expect(subject.exist?('foo', version: 1)).to be_truthy
-      expect(subject.exist?('foo', version: 2)).to be_falsey
+      expect(subject).to exist('foo', version: 1)
+      expect(subject).not_to exist('foo', version: 2)
     end
 
-    it 'should cache/version keys' do
+    it 'cache/versions keys' do
       m1v1 = ModelWithKeyAndVersion.new('model/1', 1)
       m1v2 = ModelWithKeyAndVersion.new('model/1', 2)
 
@@ -320,7 +321,7 @@ RSpec.describe ActiveSupport::Cache::DatabaseStore do
       expect(subject.read(m1v2)).to be_nil
     end
 
-    it 'should normalise' do
+    it 'normalises' do
       subject.write('foo', 'bar', version: 1)
       expect(subject.read('foo', version: '1')).to eq('bar')
     end

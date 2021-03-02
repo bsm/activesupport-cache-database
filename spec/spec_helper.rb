@@ -22,7 +22,7 @@ ActiveRecord::Migration.suppress_messages do
 end
 
 RSpec.configure do |c|
-  c.after :each do
+  c.after do
     ActiveSupport::Cache::DatabaseStore::Model.truncate!
   end
 end
