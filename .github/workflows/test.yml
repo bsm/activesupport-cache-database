@@ -1,4 +1,4 @@
-name: Ruby
+name: Test
 
 on:
   push:
@@ -7,7 +7,7 @@ on:
     branches: [main]
 
 jobs:
-  test:
+  ruby:
     runs-on: ubuntu-latest
     strategy:
       matrix:

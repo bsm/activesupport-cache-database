@@ -1,6 +1,6 @@
 # ActiveSupport::Cache::DatabaseStore
 
-[![Build Status](https://travis-ci.org/bsm/activesupport-cache-database.png?branch=master)](https://travis-ci.org/bsm/activesupport-cache-database)
+[![Test](https://github.com/bsm/activesupport-cache-database/actions/workflows/test.yml/badge.svg)](https://github.com/bsm/activesupport-cache-database/actions/workflows/test.yml)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
 ActiveSupport::Cache::Store implementation backed by a database via ActiveRecord.
