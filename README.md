@@ -37,7 +37,9 @@ cache = ActiveSupport::Cache::DatabaseStore.new namespace: 'my-scope'
 value = cache.fetch('some-key') { 'default' }
 ```
 
-To use as a Rails cache store (not recommended!), simply use a new instance.
+To use as a Rails cache store, simply use a new instance. Please keep in mind
+that, for performance reasons, your database may not be the most suitable
+general purpose cache backend.
 
 ```ruby
 config.cache_store = ActiveSupport::Cache::DatabaseStore.new

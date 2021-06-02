@@ -13,6 +13,11 @@ module ActiveSupport
       autoload :Model, 'active_support/cache/database_store/model'
       autoload :Migration, 'active_support/cache/database_store/migration'
 
+      # Advertise cache versioning support.
+      def self.supports_cache_versioning?
+        true
+      end
+
       # param [Hash] options options
       # option options [Class] :model model class. Default: ActiveSupport::Cache::DatabaseStore::Model
       def initialize(options = nil)
