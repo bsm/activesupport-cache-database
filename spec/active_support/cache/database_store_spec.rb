@@ -22,12 +22,12 @@ RSpec.describe ActiveSupport::Cache::DatabaseStore do
 
   it 'reads and write nil' do
     expect(subject.write('foo', nil)).to be_truthy
-    expect(subject.read('foo')).to eq(nil)
+    expect(subject.read('foo')).to be_nil
   end
 
   it 'reads and write false' do
     expect(subject.write('foo', false)).to be_truthy
-    expect(subject.read('foo')).to eq(false)
+    expect(subject.read('foo')).to be(false)
   end
 
   it 'overwrites' do
