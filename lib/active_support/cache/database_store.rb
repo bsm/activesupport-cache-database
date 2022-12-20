@@ -20,8 +20,10 @@ module ActiveSupport
 
       # param [Hash] options options
       # option options [Class] :model model class. Default: ActiveSupport::Cache::DatabaseStore::Model
+      # option options [Boolean] :auto_cleanup When true, runs {#cleanup} after every {#write_entry} and {#delete_entry}. Default: false
       def initialize(options = nil)
         @model = (options || {}).delete(:model) || Model
+        @auto_cleanup = (options || {}).delete(:auto_cleanup) || false
         super(options)
       end
 
@@ -74,10 +76,14 @@ module ActiveSupport
         record = @model.where(key: key).first_or_initialize
         expires_at = Time.zone.at(entry.expires_at) if entry.expires_at
         record.update! value: Marshal.dump(entry.value), version: entry.version.presence, expires_at: expires_at
+      ensure
+        cleanup if @auto_cleanup
       end
 
       def delete_entry(key, _options = nil)
         @model.where(key: key).destroy_all
+      ensure
+        cleanup if @auto_cleanup
       end
 
       def read_multi_entries(names, options)
