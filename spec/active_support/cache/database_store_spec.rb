@@ -425,6 +425,41 @@ RSpec.describe ActiveSupport::Cache::DatabaseStore do
 
       expect(model.count).to eq(2)
     end
+  end
 
+  describe "max_size option" do
+    subject do
+      described_class.new max_size: 3
+    end
+
+    it "when set, deletes oldest entry when exceeding" do
+      subject.write('one', 'foo')
+      subject.write('two', 'bar')
+      subject.write('three', 'baz')
+      subject.write('four', 'qux')
+
+      expect(subject.count(all: true)).to eq(3)
+      expect(subject.read('four')).to eq('qux')
+      expect(subject.read('three')).to eq('baz')
+      expect(subject.read('two')).to eq('bar')
+      expect(subject.read('one')).to eq(nil)
+    end
+
+    it "when set, first calls cleanup when exceeding" do
+      time = Time.now
+      expect(subject.count(all: true)).to eq(0)
+
+      subject.write('one', 'foo', expires_in: 1)
+      subject.write('two', 'bar', expires_in: 1)
+      subject.write('three', 'baz', expires_in: 100)
+
+      expect(subject.count(all: true)).to eq(3)
+
+      allow(Time).to receive(:now).and_return(time + 2)
+
+      subject.write('four', 'baz', expires_in: 1)
+
+      expect(subject.count(all: true)).to eq(2)
+    end
   end
 end
