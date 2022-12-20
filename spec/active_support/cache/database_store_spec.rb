@@ -328,11 +328,84 @@ RSpec.describe ActiveSupport::Cache::DatabaseStore do
   end
 
   describe "auto_cleanup option" do
-    subject do
-      described_class.new auto_cleanup: true
+    describe "when true" do
+      subject do
+        described_class.new auto_cleanup: true
+      end
+
+      it "cleans up expired entries automatically on write" do
+        time = Time.now
+        model = ActiveSupport::Cache::DatabaseStore::Model
+
+        expect(model.count).to eq(0)
+
+        subject.write('one', 'foo', expires_in: 1)
+        subject.write('two', 'bar', expires_in: 1)
+        subject.write('three', 'baz', expires_in: 1)
+
+        expect(model.count).to eq(3)
+
+        allow(Time).to receive(:now).and_return(time + 11)
+
+        expect(model.count).to eq(3)
+
+        subject.write('four', 'qux', expires_in: 1)
+
+        expect(model.count).to eq(1)
+        expect(subject.read('four')).to eq('qux')
+      end
+
+      it "cleans up expired entries automatically on delete" do
+        time = Time.now
+        model = ActiveSupport::Cache::DatabaseStore::Model
+
+        expect(model.count).to eq(0)
+
+        subject.write('one', 'foo', expires_in: 1)
+        subject.write('two', 'bar', expires_in: 1)
+        subject.write('three', 'baz', expires_in: 1)
+
+        expect(model.count).to eq(3)
+
+        allow(Time).to receive(:now).and_return(time + 11)
+
+        expect(model.count).to eq(3)
+
+        subject.delete('three')
+
+        expect(model.count).to eq(0)
+      end
     end
 
-    it "when set, cleans up expired entries automatically on write" do
+    describe "when false or not set" do
+      subject do
+        described_class.new auto_cleanup: false
+      end
+
+      it "no cleanup happens on write" do
+        time = Time.now
+        model = ActiveSupport::Cache::DatabaseStore::Model
+
+        expect(model.count).to eq(0)
+
+        subject.write('one', 'foo', expires_in: 1)
+        subject.write('two', 'bar', expires_in: 1)
+        subject.write('three', 'baz', expires_in: 1)
+
+        expect(model.count).to eq(3)
+
+        allow(Time).to receive(:now).and_return(time + 11)
+
+        expect(model.count).to eq(3)
+
+        subject.write('four', 'qux', expires_in: 1)
+
+        expect(model.count).to eq(4)
+        expect(subject.read('four')).to eq('qux')
+      end
+    end
+
+    it "no cleanup happens on delete" do
       time = Time.now
       model = ActiveSupport::Cache::DatabaseStore::Model
 
@@ -348,10 +421,10 @@ RSpec.describe ActiveSupport::Cache::DatabaseStore do
 
       expect(model.count).to eq(3)
 
-      subject.write('four', 'qux', expires_in: 1)
+      subject.delete('three')
 
-      expect(model.count).to eq(1)
-      expect(subject.read('four')).to eq('qux')
+      expect(model.count).to eq(2)
     end
+
   end
 end
