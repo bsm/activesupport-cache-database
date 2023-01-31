@@ -3,3 +3,9 @@ gemspec
 
 gem 'activesupport', '~> 6.1'
 gem 'activerecord', '~> 6.1'
+gem 'mysql2'
+gem 'pg'
+gem 'rake'
+gem 'rspec'
+gem 'rubocop-bsm'
+gem 'sqlite3'
