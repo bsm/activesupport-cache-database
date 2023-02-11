@@ -20,8 +20,15 @@ module ActiveSupport
 
       # param [Hash] options options
       # option options [Class] :model model class. Default: ActiveSupport::Cache::DatabaseStore::Model
+      # option options [Boolean] :auto_cleanup When true, runs {#cleanup} after every {#write_entry} and {#delete_entry}. Default: false
+      # option options [Integer, nil] :max_size When set (to a positive integer),
+      #    this is the maximum amount of entries that is allowed in the cache.
+      #    Going over will first run {#cleanup} to delete any expired entries.
+      #    If this is not enough, the oldest entry in the cache (based on `created_at` time) will also be deleted. Default: nil
       def initialize(options = nil)
         @model = (options || {}).delete(:model) || Model
+        @auto_cleanup = (options || {}).delete(:auto_cleanup) || false
+        @max_size = (options || {}).delete(:max_size) || nil
         super(options)
       end
 
@@ -74,10 +81,23 @@ module ActiveSupport
         record = @model.where(key: key).first_or_initialize
         expires_at = Time.zone.at(entry.expires_at) if entry.expires_at
         record.update! value: Marshal.dump(entry.value), version: entry.version.presence, expires_at: expires_at
+      ensure
+        cleanup if @auto_cleanup || max_size_exceeded?
+        delete_oldest_entry if max_size_exceeded? # <- Only happens when running cleanup was not enough
+      end
+
+      def max_size_exceeded?
+        @max_size && @model.count > @max_size
+      end
+
+      def delete_oldest_entry
+        @model.order(created_at: :asc).limit(1).destroy_all
       end
 
       def delete_entry(key, _options = nil)
         @model.where(key: key).destroy_all
+      ensure
+        cleanup if @auto_cleanup
       end
 
       def read_multi_entries(names, options)
