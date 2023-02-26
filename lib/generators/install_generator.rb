@@ -14,8 +14,26 @@ module ActiveSupport
 				end
 
 				def copy_migrations
-					migration_template "create_cache_database.rb", "db/migrate/create_cache_database.rb"
+					if postgresql?
+						migration_template "create_cache_pg.rb", "db/migrate/create_cache_database.rb"
+					else
+						migration_template "create_cache_database.rb", "db/migrate/create_cache_database.rb"
+					end
 				end
+
+				private
+
+				def adapter
+			    if ActiveRecord::VERSION::STRING.to_f >= 6.1
+			      ActiveRecord::Base.connection_db_config.adapter.to_s
+			    else
+			      ActiveRecord::Base.connection_config[:adapter].to_s
+			    end
+			  end
+
+			  def postgresql?
+			    adapter =~ /postg/
+			  end
 			end
 		end
 	end
