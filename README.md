@@ -11,6 +11,12 @@ Tested with:
 - SQlite3
 - MySQL/MariaDB
 
+## Installation
+Add this lin to you application's Gemfile:
+`gem 'fork-activesupport-cache-database'`
+And run:
+`rails generate cache:database:install`
+
 ## Usage
 
 Include the data migration:
