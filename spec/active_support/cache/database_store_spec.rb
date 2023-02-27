@@ -40,11 +40,11 @@ RSpec.describe ActiveSupport::Cache::DatabaseStore do
     marshaled_counter_values = [
       Marshal.dump(0),
       Marshal.dump(1),
-      Marshal.dump(2),
     ]
+    counter = 0
     allow(Marshal).to receive(:dump) {|_value|
       Fiber.yield # Suspend the current fiber
-      marshaled_counter_values[0] # and return a fake payload - we don't care that much about
+      marshaled_counter_values[counter].tap { counter += 1 }
     }
     first_save = Fiber.new do
       expect(subject.write('foo', 0)).to be_truthy
