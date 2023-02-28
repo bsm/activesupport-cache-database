@@ -74,6 +74,13 @@ module ActiveSupport
         record = @model.where(key: key).first_or_initialize
         expires_at = Time.zone.at(entry.expires_at) if entry.expires_at
         record.update! value: Marshal.dump(entry.value), version: entry.version.presence, expires_at: expires_at
+      rescue ActiveRecord::RecordNotUnique
+        # If two servers initialize a new record with the same cache key and try to save it,
+        # the saves will race. We do not need to ensure a specific save wins, but we do need to ensure
+        # that at least one of the saves succeeds and that none of the saves raise an exception.
+        # In practive it means that if there alread was a save that "won" from us and completed earlier
+        # we don't need to do anything.
+        true
       end
 
       def delete_entry(key, _options = nil)

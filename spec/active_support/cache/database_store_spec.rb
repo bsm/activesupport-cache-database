@@ -36,6 +36,30 @@ RSpec.describe ActiveSupport::Cache::DatabaseStore do
     expect(subject.read('foo')).to eq('baz')
   end
 
+  it 'can deal with a race condition when a stolen write occurs in a concurrent thread or Fiber' do
+    marshaled_counter_values = [
+      Marshal.dump(0),
+      Marshal.dump(1),
+    ]
+    counter = 0
+    allow(Marshal).to receive(:dump) {|_value|
+      Fiber.yield # Suspend the current fiber
+      marshaled_counter_values[counter].tap { counter += 1 }
+    }
+    first_save = Fiber.new do
+      expect(subject.write('foo', 0)).to be_truthy
+    end
+    second_save = Fiber.new do
+      expect(subject.write('foo', 1)).to be_truthy
+    end
+    first_save.resume
+    second_save.resume
+    first_save.resume
+    second_save.resume
+
+    expect(subject.read('foo')).to eq(0) # First write wins
+  end
+
   it 'supports exist?' do
     subject.write('foo', 'bar')
     expect(subject).to exist('foo')
