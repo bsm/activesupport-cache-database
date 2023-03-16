@@ -8,12 +8,12 @@ PATH
 GEM
   remote: https://rubygems.org/
   specs:
-    activemodel (7.0.4.2)
-      activesupport (= 7.0.4.2)
-    activerecord (7.0.4.2)
-      activemodel (= 7.0.4.2)
-      activesupport (= 7.0.4.2)
-    activesupport (7.0.4.2)
+    activemodel (7.0.4.3)
+      activesupport (= 7.0.4.3)
+    activerecord (7.0.4.3)
+      activemodel (= 7.0.4.3)
+      activesupport (= 7.0.4.3)
+    activesupport (7.0.4.3)
       concurrent-ruby (~> 1.0, >= 1.0.2)
       i18n (>= 1.6, < 2)
       minitest (>= 5.1)
@@ -25,7 +25,7 @@ GEM
       concurrent-ruby (~> 1.0)
     json (2.6.3)
     mini_portile2 (2.8.1)
-    minitest (5.17.0)
+    minitest (5.18.0)
     mysql2 (0.5.5)
     parallel (1.22.1)
     parser (3.2.1.0)
