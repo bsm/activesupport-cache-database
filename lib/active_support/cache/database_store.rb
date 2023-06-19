@@ -26,12 +26,24 @@ module ActiveSupport
       end
 
       # Preemptively iterates through all stored keys and removes the ones which have expired.
+
+      # params [Hash] options
+      # option options [String] :namespace
+      # option options [ActiveSupport::Duration] :outdated_after - provide a time duration after record without expire_at date will get removed.
       def cleanup(options = nil)
         options = merged_options(options)
         scope = @model.expired
+
+        scope = if (outdated_after = options[:outdated_after])
+          scope.or(@model.outdated(outdated_after))
+        else
+          scope.or(@model.outdated)
+        end
+
         if (namespace = options[:namespace])
           scope = scope.namespaced(namespace)
         end
+
         scope.delete_all
       end
 

@@ -120,6 +120,21 @@ RSpec.describe ActiveSupport::Cache::DatabaseStore do
       expect(subject.read('fud')).to eq('biz')
     end
 
+    it 'remove old cache without expires_in value' do
+      time = Time.now
+
+      subject.write('this', 'expired', expires_in: nil)
+
+      allow(Time).to receive(:now).and_return(time + 32.days)
+      expect(subject.cleanup).to eq(1)
+
+      subject.write('not', 'expired', expires_in: nil)
+      allow(Time).to receive(:now).and_return(time + 15.days)
+      expect(subject.cleanup).to eq(0)
+
+      expect(subject.cleanup(outdated_after: 10.days.ago)).to eq(1)
+    end
+
     it 'supports namespace' do
       time = Time.now
       subject.write('foo', 'bar', expires_in: 10, namespace: 'x')
