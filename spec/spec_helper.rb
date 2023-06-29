@@ -3,6 +3,7 @@ ENV['RACK_ENV'] ||= 'test'
 require 'rspec'
 require 'fileutils'
 require 'activesupport_cache_database'
+require 'active_support/testing/time_helpers'
 
 Time.zone_default = Time.find_zone!('UTC')
 

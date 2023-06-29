@@ -29,15 +29,15 @@ module ActiveSupport
 
       # params [Hash] options
       # option options [String] :namespace
-      # option options [ActiveSupport::Duration] :outdated_after - provide a time duration after record without expire_at date will get removed.
+      # option options [ActiveSupport::Duration] :created_before - provide a time duration after record without expire_at date will get removed.
       def cleanup(options = nil)
         options = merged_options(options)
         scope = @model.expired
 
-        scope = if (outdated_after = options[:outdated_after])
-          scope.or(@model.outdated(outdated_after))
+        scope = if (created_before = options[:created_before])
+          scope.or(@model.created_before(created_before))
         else
-          scope.or(@model.outdated)
+          scope.or(@model.created_before)
         end
 
         if (namespace = options[:namespace])
@@ -48,6 +48,11 @@ module ActiveSupport
       end
 
       # Clears the entire cache. Be careful with this method.
+      #
+      # params [Hash] options
+      # option options [String] :namespace
+      #
+      # @return [Boolean]
       def clear(options = nil)
         options = merged_options(options)
         if (namespace = options[:namespace])

@@ -1,6 +1,8 @@
 require 'spec_helper'
 
 RSpec.describe ActiveSupport::Cache::DatabaseStore do
+  include ActiveSupport::Testing::TimeHelpers
+
   subject do
     described_class.new expires_in: 60
   end
@@ -107,46 +109,48 @@ RSpec.describe ActiveSupport::Cache::DatabaseStore do
 
   describe '#cleanup' do
     it 'deletes expired' do
-      time = Time.now
       subject.write('foo', 'bar', expires_in: 10)
       subject.write('fud', 'biz', expires_in: 20)
 
-      allow(Time).to receive(:now).and_return(time + 9)
-      expect(subject.cleanup).to eq(0)
+      travel 9 do
+        expect(subject.cleanup).to eq(0)
+      end
 
-      allow(Time).to receive(:now).and_return(time + 19)
-      expect(subject.cleanup).to eq(1)
-      expect(subject.read('foo')).to be_nil
-      expect(subject.read('fud')).to eq('biz')
+      travel 19 do
+        expect(subject.cleanup).to eq(1)
+        expect(subject.read('foo')).to be_nil
+        expect(subject.read('fud')).to eq('biz')
+      end
     end
 
     it 'remove old cache without expires_in value' do
-      time = Time.now
-
       subject.write('this', 'expired', expires_in: nil)
 
-      allow(Time).to receive(:now).and_return(time + 32.days)
-      expect(subject.cleanup).to eq(1)
+      travel 32.days do
+        expect(subject.cleanup).to eq(1)
+      end
 
       subject.write('not', 'expired', expires_in: nil)
-      allow(Time).to receive(:now).and_return(time + 15.days)
-      expect(subject.cleanup).to eq(0)
 
-      expect(subject.cleanup(outdated_after: 10.days.ago)).to eq(1)
+      travel 15.days do
+        expect(subject.cleanup).to eq(0)
+
+        expect(subject.cleanup(created_before: 10.days.ago)).to eq(1)
+      end
     end
 
     it 'supports namespace' do
-      time = Time.now
       subject.write('foo', 'bar', expires_in: 10, namespace: 'x')
       subject.write('foo', 'biz', expires_in: 10, namespace: 'y')
 
-      allow(Time).to receive(:now).and_return(time + 11)
-      expect(subject.count).to eq(0)
-      expect(subject.count(all: true)).to eq(2)
+      travel 11 do
+        expect(subject.count).to eq(0)
+        expect(subject.count(all: true)).to eq(2)
 
-      expect(subject.cleanup(namespace: 'x')).to eq(1)
-      expect(subject.count).to eq(0)
-      expect(subject.count(all: true)).to eq(1)
+        expect(subject.cleanup(namespace: 'x')).to eq(1)
+        expect(subject.count).to eq(0)
+        expect(subject.count(all: true)).to eq(1)
+      end
     end
   end
 
@@ -233,13 +237,13 @@ RSpec.describe ActiveSupport::Cache::DatabaseStore do
     end
 
     it 'supports expires' do
-      time = Time.now
       subject.write('foo', 'bar', expires_in: 10)
       subject.write('fu', 'baz')
       subject.write('fud', 'biz')
 
-      allow(Time).to receive(:now).and_return(time + 11)
-      expect(subject.read_multi('foo', 'fu')).to eq('fu' => 'baz')
+      travel 11 do
+        expect(subject.read_multi('foo', 'fu')).to eq('fu' => 'baz')
+      end
     end
   end
 
