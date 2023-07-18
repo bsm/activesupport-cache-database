@@ -12,6 +12,7 @@ module ActiveSupport
 
         scope :fresh, -> { where(arel_table[:expires_at].gt(Time.zone.now)) }
         scope :expired, -> { where(arel_table[:expires_at].lteq(Time.zone.now)) }
+        scope :created_before, ->(date = 1.month.ago) { where(arel_table[:created_at].lt(date)) }
 
         def self.namespaced(namespace)
           prefix = "#{namespace}:"

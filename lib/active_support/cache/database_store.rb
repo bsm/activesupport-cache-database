@@ -26,16 +26,31 @@ module ActiveSupport
       end
 
       # Preemptively iterates through all stored keys and removes the ones which have expired.
+
+      # params [Hash] options
+      # option options [String] :namespace
+      # option options [ActiveSupport::Duration] :created_before - provide a time duration after record without expire_at date will get removed.
       def cleanup(options = nil)
         options = merged_options(options)
         scope = @model.expired
+
+        if (created_before = options[:created_before])
+          scope = scope.or(@model.created_before(created_before))
+        end
+
         if (namespace = options[:namespace])
           scope = scope.namespaced(namespace)
         end
+
         scope.delete_all
       end
 
       # Clears the entire cache. Be careful with this method.
+      #
+      # params [Hash] options
+      # option options [String] :namespace
+      #
+      # @return [Boolean]
       def clear(options = nil)
         options = merged_options(options)
         if (namespace = options[:namespace])
