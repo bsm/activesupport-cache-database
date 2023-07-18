@@ -124,12 +124,6 @@ RSpec.describe ActiveSupport::Cache::DatabaseStore do
     end
 
     it 'remove old cache without expires_in value' do
-      subject.write('this', 'expired', expires_in: nil)
-
-      travel 32.days do
-        expect(subject.cleanup).to eq(1)
-      end
-
       subject.write('not', 'expired', expires_in: nil)
 
       travel 15.days do

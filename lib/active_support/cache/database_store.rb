@@ -34,10 +34,8 @@ module ActiveSupport
         options = merged_options(options)
         scope = @model.expired
 
-        scope = if (created_before = options[:created_before])
-          scope.or(@model.created_before(created_before))
-        else
-          scope.or(@model.created_before)
+        if (created_before = options[:created_before])
+          scope = scope.or(@model.created_before(created_before))
         end
 
         if (namespace = options[:namespace])
