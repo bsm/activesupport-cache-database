@@ -15,9 +15,7 @@ module ActiveSupport
         scope :created_before, ->(date = 1.month.ago) { where(arel_table[:created_at].lt(date)) }
 
         def self.namespaced(namespace)
-          prefix = "#{namespace}:"
-          clause = ::Arel::Nodes::NamedFunction.new('SUBSTR', [arel_table[:key], 1, prefix.bytesize])
-          where clause.eq(prefix)
+          where(arel_table[:key].matches("#{namespace}:%"))
         end
       end
     end
