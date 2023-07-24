@@ -32,7 +32,7 @@ module ActiveSupport
         end
 
         def mysql?
-          adapter =~ /mysql/
+          adapter.include?('mysql')
         end
       end
     end
