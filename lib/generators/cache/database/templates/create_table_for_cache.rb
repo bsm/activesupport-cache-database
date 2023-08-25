@@ -1,4 +1,4 @@
-class Migration < ::ActiveRecord::Migration[5.2]
+class Migration < ActiveRecord::Migration[5.2]
   def change
     create_table :activesupport_cache_entries, primary_key: 'key', id: :binary, limit: 255 do |t|
       t.binary :value, null: false
@@ -17,7 +17,9 @@ class Migration < ::ActiveRecord::Migration[5.2]
       add_index :activesupport_cache_entries, :version, where: 'version IS NOT NULL'
     end
 
-    # In case, your using Postgres you might wanto to turn table to unlogged tables. This comes with 50% write performance improvement, but comes with multiple downsides you need to be aware off:
+    # if your using Postgres you might want to turn cache table into unlogged tables.
+    # This comes with 50% write performance improvement, but comes with multiple
+    # downsides you need to be aware off:
     # - No validation, data will be lost in case of forced restart.
     # - No replication to read replicas
     #

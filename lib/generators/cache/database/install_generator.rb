@@ -1,4 +1,4 @@
-require "rails/generators/active_record"
+require 'rails/generators/active_record'
 
 module Cache
   module Database
@@ -6,8 +6,8 @@ module Cache
       class InstallGenerator < Rails::Generators::Base
         include ActiveRecord::Generators::Migration
 
-        source_root File.join(__dir__, "templates")
-        desc "Add migration for ActiveSupport::Cache::Database"
+        source_root File.join(__dir__, 'templates')
+        desc 'Add migration for ActiveSupport::Cache::Database'
 
         def self.next_migration_number(path)
           next_migration_number = current_migration_number(path) + 1
@@ -15,7 +15,7 @@ module Cache
         end
 
         def copy_migrations
-          migration_template "create_table_for_cache.rb", "db/migrate/create_cache_database.rb"
+          migration_template 'create_table_for_cache.rb', 'db/migrate/create_cache_database.rb'
         end
       end
     end

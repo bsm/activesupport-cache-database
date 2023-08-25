@@ -13,10 +13,10 @@ Tested with:
 
 ## Usage
 Add a gem to your Gemfile:
-`gem 'activesupport-cache-database'`
+```gem 'activesupport-cache-database'```
 
 Generate a migration file to create required table:
-`rails generate cache:database:install`
+```rails generate cache:database:install```
 
 Make sure to read through migration file, before running a migration. You might want to tweak it to fit your usecase.
 
