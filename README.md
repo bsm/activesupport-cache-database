@@ -12,26 +12,15 @@ Tested with:
 - MySQL/MariaDB
 
 ## Usage
+Add a gem to your Gemfile:
+`gem 'activesupport-cache-database'`
 
-Include the data migration:
+Generate a migration file to create required table:
+`rails generate cache:database:install`
 
-```ruby
-# db/migrate/20190908102030_create_activesupport_cache_entries.rb
-require 'active_support/cache/database_store/migration'
-
-class CreateActivesupportCacheEntries < ActiveRecord::Migration[5.2]
-  def up
-    ActiveSupport::Cache::DatabaseStore::Migration.migrate(:up)
-  end
-
-  def down
-    ActiveSupport::Cache::DatabaseStore::Migration.migrate(:down)
-  end
-end
-```
+Make sure to read through migration file, before running a migration. You might want to tweak it to fit your usecase.
 
 Open and use the new cache instance:
-
 ```ruby
 cache = ActiveSupport::Cache::DatabaseStore.new namespace: 'my-scope'
 value = cache.fetch('some-key') { 'default' }

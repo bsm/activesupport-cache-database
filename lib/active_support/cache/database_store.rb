@@ -11,7 +11,6 @@ module ActiveSupport
       prepend Strategy::LocalCache
 
       autoload :Model, 'active_support/cache/database_store/model'
-      autoload :Migration, 'active_support/cache/database_store/migration'
 
       # Advertise cache versioning support.
       def self.supports_cache_versioning?
