@@ -4,6 +4,7 @@ require 'rspec'
 require 'fileutils'
 require 'activesupport_cache_database'
 require 'active_support/testing/time_helpers'
+require_relative '../lib/generators/cache/database/templates/create_table_for_cache'
 
 Time.zone_default = Time.find_zone!('UTC')
 
@@ -19,7 +20,7 @@ ActiveRecord::Base.connection.instance_eval do
   drop_table 'activesupport_cache_entries', if_exists: true
 end
 ActiveRecord::Migration.suppress_messages do
-  ActiveSupport::Cache::DatabaseStore::Migration.migrate(:up)
+  CreateTableForCache.migrate(:up)
 end
 
 RSpec.configure do |c|

@@ -1,3 +1,4 @@
 .rubocop-*
 pkg/
 spec/*.sqlite*
+.DS_Store
