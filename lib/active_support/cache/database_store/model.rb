@@ -15,7 +15,13 @@ module ActiveSupport
         scope :created_before, ->(date = 1.month.ago) { where(arel_table[:created_at].lt(date)) }
 
         def self.namespaced(namespace)
-          where(arel_table[:key].matches("#{namespace}:%"))
+          case ActiveRecord::Base.connection.adapter_name
+          when 'PostgreSQL'
+            ifx = Arel::Nodes::InfixOperation.new('IN', Arel::Nodes.build_quoted(namespace), arel_table[:key])
+            where(Arel::Nodes::NamedFunction.new('POSITION', [ifx]).eq(1))
+          else
+            where(arel_table[:key].matches("#{namespace}:%"))
+          end
         end
       end
     end

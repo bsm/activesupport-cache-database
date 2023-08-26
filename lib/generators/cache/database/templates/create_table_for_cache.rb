@@ -7,15 +7,8 @@ class CreateTableForCache < ActiveRecord::Migration[5.2]
       t.timestamp :expires_at
     end
 
-    if mysql?
-      # MySQL and MariaDB don't support partial indexes
-      add_index :activesupport_cache_entries, :expires_at
-      add_index :activesupport_cache_entries, :version
-    else
-      # For Sqlite3, PostgreSQL we use partial index, because expires_at column can be null it would be wasteful to include it in index
-      add_index :activesupport_cache_entries, :expires_at, where: 'expires_at IS NOT NULL'
-      add_index :activesupport_cache_entries, :version, where: 'version IS NOT NULL'
-    end
+    add_index :activesupport_cache_entries, :expires_at, where: 'expires_at IS NOT NULL'
+    add_index :activesupport_cache_entries, :version, where: 'version IS NOT NULL'
 
     # if your using Postgres you might want to turn cache table into unlogged tables.
     # This comes with 50% write performance improvement, but comes with multiple
@@ -27,19 +20,5 @@ class CreateTableForCache < ActiveRecord::Migration[5.2]
     #
     # Uncomment a following line if those are acceptable for you:
     # ActiveRecord::Base.connection.execute("ALTER TABLE activesupport_cache_entries SET UNLOGGED")
-  end
-
-  private
-
-  def adapter
-    if ActiveRecord::VERSION::STRING.to_f >= 6.1
-      ActiveRecord::Base.connection_db_config.adapter.to_s
-    else
-      ActiveRecord::Base.connection_config[:adapter].to_s
-    end
-  end
-
-  def mysql?
-    adapter.include?('mysql')
   end
 end
