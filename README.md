@@ -41,7 +41,7 @@ config.cache_store = ActiveSupport::Cache::DatabaseStore.new
 ## Maintenance
 After you have started caching into the database, you will likely see the database size growing significantly. It is crucial to implement an effective strategy to evict the cache from your DB.
 
-There may be a large number of cache entries that do not possess an `expires_at`` value, so it will be necessary to decide on an optimal timeframe for storing your cache.
+There may be a large number of cache entries that do not possess an `expires_at` value, so it will be necessary to decide on an optimal timeframe for storing your cache.
 
 This next piece of code should be run periodically:
 ```
@@ -49,7 +49,7 @@ ActiveSupport::Cache::DatabaseStore.new.cleanup(
   created_before: 1.week.ago
 )
 ```
-Without providing a `created_before` value, only those caches with `expires_at`` values will be cleaned, leaving behind plenty of dead cache.
+Without providing a `created_before` value, only those caches with `expires_at` values will be cleaned, leaving behind plenty of dead cache.
 
 If you're using PostgreSQL, consider running vacuum or pg_repack intermittently to delete data physically as well.
 
@@ -57,4 +57,4 @@ If you're using PostgreSQL, consider running vacuum or pg_repack intermittently 
 ## Warning
 There are two things you need to be aware about while using this gem:
 - For performance reasons, your database may not be the most suitable general purpose cache backend. But in some cases, caching complex quieries in cache could be a good enough improvement.
-- While already generally usable as a Rails cache store, this gem doesn't yeat implement all required methods.
+- While already generally usable as a Rails cache store, this gem doesn't yet implement all required methods.
