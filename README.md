@@ -11,14 +11,20 @@ Tested with:
 - SQlite3
 - MySQL/MariaDB
 
-## Usage
-Add a gem to your Gemfile:
+## Install
+Add gem to Gemfile and bundle install.
+
 ```gem 'activesupport-cache-database'```
 
-Generate a migration file to create required table:
+This gem requires a database table `activesupport_cache_entries` to be created. To do so generate a migration that would create required table.
+
 ```rails generate cache:database:install```
 
 Make sure to read through migration file, before running a migration. You might want to tweak it to fit your usecase.
+
+`rails db:migrate`
+
+## Usage
 
 Open and use the new cache instance:
 ```ruby
@@ -26,10 +32,29 @@ cache = ActiveSupport::Cache::DatabaseStore.new namespace: 'my-scope'
 value = cache.fetch('some-key') { 'default' }
 ```
 
-To use as a Rails cache store, simply use a new instance. Please keep in mind
-that, for performance reasons, your database may not be the most suitable
-general purpose cache backend.
+To use as a Rails cache store, simply use a new instance.
 
 ```ruby
 config.cache_store = ActiveSupport::Cache::DatabaseStore.new
 ```
+
+## Maintenance
+After you have started caching into the database, you will likely see the database size growing significantly. It is crucial to implement an effective strategy to evict the cache from your DB.
+
+There may be a large number of cache entries that do not possess an `expires_at`` value, so it will be necessary to decide on an optimal timeframe for storing your cache.
+
+This next piece of code should be run periodically:
+```
+ActiveSupport::Cache::DatabaseStore.new.cleanup(
+  created_before: 1.week.ago
+)
+```
+Without providing a `created_before` value, only those caches with `expires_at`` values will be cleaned, leaving behind plenty of dead cache.
+
+If you're using PostgreSQL, consider running vacuum or pg_repack intermittently to delete data physically as well.
+
+
+## Warning
+There are two things you need to be aware about while using this gem:
+- For performance reasons, your database may not be the most suitable general purpose cache backend. But in some cases, caching complex quieries in cache could be a good enough improvement.
+- While already generally usable as a Rails cache store, this gem doesn't yeat implement all required methods.
