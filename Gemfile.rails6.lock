@@ -8,16 +8,17 @@ PATH
 GEM
   remote: https://rubygems.org/
   specs:
-    activemodel (7.0.7.2)
-      activesupport (= 7.0.7.2)
-    activerecord (7.0.7.2)
-      activemodel (= 7.0.7.2)
-      activesupport (= 7.0.7.2)
-    activesupport (7.0.7.2)
+    activemodel (6.1.7.6)
+      activesupport (= 6.1.7.6)
+    activerecord (6.1.7.6)
+      activemodel (= 6.1.7.6)
+      activesupport (= 6.1.7.6)
+    activesupport (6.1.7.6)
       concurrent-ruby (~> 1.0, >= 1.0.2)
       i18n (>= 1.6, < 2)
       minitest (>= 5.1)
       tzinfo (~> 2.0)
+      zeitwerk (~> 2.3)
     ast (2.4.2)
     base64 (0.1.1)
     concurrent-ruby (1.2.2)
@@ -26,7 +27,6 @@ GEM
       concurrent-ruby (~> 1.0)
     json (2.6.3)
     language_server-protocol (3.17.0.3)
-    mini_portile2 (2.8.4)
     minitest (5.19.0)
     mysql2 (0.5.5)
     parallel (1.23.0)
@@ -85,16 +85,18 @@ GEM
       rubocop-capybara (~> 2.17)
       rubocop-factory_bot (~> 2.22)
     ruby-progressbar (1.13.0)
-    sqlite3 (1.6.4)
-      mini_portile2 (~> 2.8.0)
+    sqlite3 (1.6.4-x86_64-linux)
     tzinfo (2.0.6)
       concurrent-ruby (~> 1.0)
     unicode-display_width (2.4.2)
+    zeitwerk (2.6.11)
 
 PLATFORMS
-  ruby
+  x86_64-linux
 
 DEPENDENCIES
+  activerecord (~> 6.1)
+  activesupport (~> 6.1)
   activesupport_cache_database!
   mysql2
   pg
@@ -104,4 +106,4 @@ DEPENDENCIES
   sqlite3
 
 BUNDLED WITH
-   2.3.16
+   2.4.9

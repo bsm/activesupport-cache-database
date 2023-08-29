@@ -71,6 +71,25 @@ module ActiveSupport
         scope.count
       end
 
+      # Increments an integer value in the cache.
+      def increment(name, amount = 1, options = nil)
+        options = merged_options(options)
+        scope = @model.all
+        if (namespace = options[:namespace])
+          scope = scope.namespaced(namespace)
+        end
+
+        entry = Entry.new(amount, **options.merge(version: normalize_version(name, options)))
+        expires_at = Time.zone.at(entry.expires_at) if entry.expires_at
+        attrs = { key: normalize_key(name, options), value: Marshal.dump(entry.value), version: entry.version.presence, expires_at: expires_at }
+        scope.upsert(attrs, on_duplicate: Arel.sql(sanitize_sql_array(['value = EXCLUDED.value + ?', amount])))
+      end
+
+      # Decrements an integer value in the cache.
+      def decrement(name, amount = 1, options = nil)
+        increment(name, -amount, options)
+      end
+
       private
 
       def normalize_key(name, options = nil)
