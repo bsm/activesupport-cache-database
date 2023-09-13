@@ -15,7 +15,8 @@ module Cache
         end
 
         def copy_migrations
-          migration_template 'create_table_for_cache.rb', 'db/migrate/create_cache_database.rb'
+          migration_template 'create_table_for_cache.rb', 'db/migrate/create_table_for_cache.rb'
+          migration_template 'create_primary_key_index.rb', 'db/migrate/create_primary_key_index.rb'
         end
       end
     end
