@@ -5,6 +5,7 @@ require 'fileutils'
 require 'activesupport_cache_database'
 require 'active_support/testing/time_helpers'
 require_relative '../lib/generators/cache/database/templates/create_table_for_cache'
+require_relative '../lib/generators/cache/database/templates/add_cache_compression_column'
 
 Time.zone_default = Time.find_zone!('UTC')
 
@@ -21,6 +22,7 @@ ActiveRecord::Base.connection.instance_eval do
 end
 ActiveRecord::Migration.suppress_messages do
   CreateTableForCache.migrate(:up)
+  AddCacheCompressionColumn.migrate(:up)
 end
 
 RSpec.configure do |c|

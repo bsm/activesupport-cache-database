@@ -11,6 +11,13 @@ module ActiveSupport
       prepend Strategy::LocalCache
 
       autoload :Model, 'active_support/cache/database_store/model'
+      autoload :PlainHandler, 'active_support/cache/database_store/plain_handler'
+      autoload :GzipHandler, 'active_support/cache/database_store/gzip_handler'
+
+      COMPRESSION_HANDLERS = {
+        'plain' => PlainHandler,
+        'gzip'  => GzipHandler,
+      }.freeze
 
       # Advertise cache versioning support.
       def self.supports_cache_versioning?
@@ -21,6 +28,7 @@ module ActiveSupport
       # option options [Class] :model model class. Default: ActiveSupport::Cache::DatabaseStore::Model
       def initialize(options = nil)
         @model = (options || {}).delete(:model) || Model
+        @compression = (options || {}).delete(:compression) || 'plain'
         super(options)
       end
 
@@ -81,7 +89,9 @@ module ActiveSupport
 
         entry = Entry.new(amount, **options.merge(version: normalize_version(name, options)))
         expires_at = Time.zone.at(entry.expires_at) if entry.expires_at
-        attrs = { key: normalize_key(name, options), value: Marshal.dump(entry.value), version: entry.version.presence, expires_at: expires_at }
+        # Integer and float entries do not warrant compression so that upsert remains possible with a DB-drive increment
+        attrs = { key: normalize_key(name, options), compression: 'plain', value: compress(entry.value, 'plain'), version: entry.version.presence,
+expires_at: expires_at, }
         scope.upsert(attrs, on_duplicate: Arel.sql(sanitize_sql_array(['value = EXCLUDED.value + ?', amount])))
       end
 
@@ -130,8 +140,15 @@ module ActiveSupport
 
       def entry_attributes(entry)
         expires_at = Time.zone.at(entry.expires_at) if entry.expires_at
+        attributes = case entry.value
+          when Numeric # Integer and float entries do not warrant compression
+            { compression: 'plain', value: compress(entry.value, 'plain') }
+          else
+            { compression: @compression, value: compress(entry.value, @compression) }
+          end
 
-        { value: Marshal.dump(entry.value), version: entry.version.presence, expires_at: expires_at }
+
+        attributes.merge(version: entry.version.presence, expires_at: expires_at)
       end
 
       def read_multi_entries(names, options)
@@ -158,10 +175,18 @@ module ActiveSupport
         results
       end
 
+      def compress(object, compression)
+        COMPRESSION_HANDLERS.fetch(compression).compress(object)
+      end
+
+      def decompress(bytes, compression)
+        COMPRESSION_HANDLERS.fetch(compression).decompress(bytes)
+      end
+
       def from_record(record)
         return unless record
 
-        entry = Entry.new Marshal.load(record.value), version: record.version
+        entry = Entry.new(decompress(record.value, record.compression), version: record.version)
         entry.expires_at = record.expires_at
         entry
       end
