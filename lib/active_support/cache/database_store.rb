@@ -105,7 +105,7 @@ module ActiveSupport
 
       def write_entry(key, entry, _options = nil)
         record = @model.where(key: key).first_or_initialize
-        record.update! **entry_attributes(entry)
+        record.update!(**entry_attributes(entry))
       rescue ActiveRecord::RecordNotUnique
         # If two servers initialize a new record with the same cache key and try to save it,
         # the saves will race. We do not need to ensure a specific save wins, but we do need to ensure
@@ -120,15 +120,7 @@ module ActiveSupport
       end
 
       def write_multi_entries(hash, **_options)
-        entries = hash.map do |key, entry|
-          expires_at = Time.zone.at(entry.expires_at) if entry.expires_at
-
-          {
-            key: key,
-            created_at: Time.zone.now,
-            **entry_attributes(entry),
-          }
-        end
+        entries = hash.map {|key, entry| { key: key, created_at: Time.zone.now, **entry_attributes(entry) } }
 
         # In rails 7, we can use update_only not to do anything. But for the sakes of compatibility, we don't use any additional parameters.
         @model.upsert_all(entries)
