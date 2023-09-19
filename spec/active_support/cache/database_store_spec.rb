@@ -110,7 +110,7 @@ RSpec.describe ActiveSupport::Cache::DatabaseStore do
   it 'write_multi to insert records with one insert' do
     insert_queries = []
     ActiveSupport::Notifications.subscribe('sql.active_record') do |_name, _start, _finish, _id, payload|
-      insert_queries << payload[:sql] if payload[:sql].start_with?('INSERT INTO "activesupport_cache_entries"')
+      insert_queries << payload[:sql] if payload[:sql].start_with?('INSERT INTO')
     end
     values = { 'test0' => 'test0', 'test1' => 'test1', 'test2' => 'test2' }
 
