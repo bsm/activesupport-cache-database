@@ -122,7 +122,7 @@ module ActiveSupport
 
       def write_multi_entries(hash, **_options)
         @model.upsert_all(
-          hash.each_with_object([]) do |(key, entry), entries|
+          (hash.each_with_object([]) do |(key, entry), entries|
             expires_at = Time.zone.at(entry.expires_at) if entry.expires_at
             entries << {
               key: key,
@@ -131,8 +131,7 @@ module ActiveSupport
               expires_at: expires_at,
               created_at: Time.zone.now,
             }
-          end,
-          update_only: [:value],
+          end), update_only: [] # Do nothing on update.
         )
       end
 
