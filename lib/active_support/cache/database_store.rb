@@ -96,7 +96,9 @@ module ActiveSupport
         key = super.to_s
         raise ArgumentError, 'Namespaced key exceeds the length limit' if key && key.bytesize > 255
 
-        key
+        # `key` is actually a BLOB column, with some DBs (such as SQLite) we need to explicitly
+        # tag the string as binary so that Arel can properly escape it for a SELECT query
+        key.b
       end
 
       def read_entry(key, _options = nil)
