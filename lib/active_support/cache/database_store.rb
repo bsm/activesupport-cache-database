@@ -132,11 +132,8 @@ module ActiveSupport
           }
         end
 
-        if Rails::VERSION::MAJOR >= 7
-          @model.upsert_all(entries, update_only: []) # Do nothing on update.
-        else
-          @model.upsert_all(entries)
-        end
+        # In rails 7, we can use update_only not to do anything. But for the sakes of compatibility, we don't use any additional parameters.
+        @model.upsert_all(entries)
       end
 
       def read_multi_entries(names, options)
