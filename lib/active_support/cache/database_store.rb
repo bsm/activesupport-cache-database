@@ -121,9 +121,10 @@ module ActiveSupport
       end
 
       def write_multi_entries(hash, **_options)
-        entries = hash.each_with_object([]) do |(key, entry), obj|
+        entries = hash.map do |key, entry|
           expires_at = Time.zone.at(entry.expires_at) if entry.expires_at
-          obj << {
+
+          {
             key: key,
             value: Marshal.dump(entry.value),
             version: entry.version.presence,
