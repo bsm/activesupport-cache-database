@@ -120,10 +120,10 @@ module ActiveSupport
         @model.where(key: key).destroy_all
       end
 
-      def write_multi_entries(hash, **options)
+      def write_multi_entries(hash, **_options)
         @model.upsert_all(hash.each_with_object([]) do |(key, entry), entries|
           expires_at = Time.zone.at(entry.expires_at) if entry.expires_at
-          entries << {key: key, value: Marshal.dump(entry.value), version: entry.version.presence, expires_at: expires_at}
+          entries << { key: key, value: Marshal.dump(entry.value), version: entry.version.presence, expires_at: expires_at }
         end)
       end
 
