@@ -2,7 +2,7 @@ require 'spec_helper'
 require_relative 'shared_database_store_examples'
 
 RSpec.describe ActiveSupport::Cache::DatabaseStore do
-  include_examples 'Database cache store with compression', 'plain'
+  include_examples 'Database cache store with compression', nil
   include_examples 'Database cache store with compression', 'gzip'
 
   it 'errors out for unsupported compression' do
