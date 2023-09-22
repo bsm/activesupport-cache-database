@@ -1,5 +1,6 @@
 require 'active_support/cache'
 require 'active_record'
+require 'active_support/gzip'
 
 module ActiveSupport
   module Cache
@@ -11,13 +12,8 @@ module ActiveSupport
       prepend Strategy::LocalCache
 
       autoload :Model, 'active_support/cache/database_store/model'
-      autoload :PlainHandler, 'active_support/cache/database_store/plain_handler'
-      autoload :GzipHandler, 'active_support/cache/database_store/gzip_handler'
 
-      COMPRESSION_HANDLERS = {
-        'plain' => PlainHandler,
-        'gzip'  => GzipHandler,
-      }.freeze
+      COMPRESSION_HANDLERS = { 'gzip'  => ActiveSupport::Gzip }.freeze
 
       # Advertise cache versioning support.
       def self.supports_cache_versioning?
@@ -28,7 +24,7 @@ module ActiveSupport
       # option options [Class] :model model class. Default: ActiveSupport::Cache::DatabaseStore::Model
       def initialize(options = nil)
         @model = (options || {}).delete(:model) || Model
-        @compression = (options || {}).delete(:compression) || 'plain'
+        @compression = (options || {}).delete(:compression)&.to_s
         super(options)
       end
 
@@ -88,10 +84,9 @@ module ActiveSupport
         end
 
         entry = Entry.new(amount, **options.merge(version: normalize_version(name, options)))
-        expires_at = Time.zone.at(entry.expires_at) if entry.expires_at
+
         # Integer and float entries do not warrant compression so that upsert remains possible with a DB-drive increment
-        attrs = { key: normalize_key(name, options), compression: 'plain', value: compress(entry.value, 'plain'), version: entry.version.presence,
-expires_at: expires_at, }
+        attrs = { key: normalize_key(name, options),  **entry_attributes(entry) }
         scope.upsert(attrs, on_duplicate: Arel.sql(sanitize_sql_array(['value = EXCLUDED.value + ?', amount])))
       end
 
@@ -140,15 +135,8 @@ expires_at: expires_at, }
 
       def entry_attributes(entry)
         expires_at = Time.zone.at(entry.expires_at) if entry.expires_at
-        attributes = case entry.value
-          when Numeric # Integer and float entries do not warrant compression
-            { compression: 'plain', value: compress(entry.value, 'plain') }
-          else
-            { compression: @compression, value: compress(entry.value, @compression) }
-          end
 
-
-        attributes.merge(version: entry.version.presence, expires_at: expires_at)
+        compression_attributes(entry.value).merge(version: entry.version.presence, expires_at: expires_at)
       end
 
       def read_multi_entries(names, options)
@@ -175,12 +163,33 @@ expires_at: expires_at, }
         results
       end
 
-      def compress(object, compression)
+
+      def compression_attributes(value)
+        binary = Marshal.dump(value)
+
+        case value
+        when Numeric
+          return { value: binary }
+        end
+
+        if @compression && binary.bytesize >= 1024
+          handler = COMPRESSION_HANDLERS[@compression]
+          { compression: @compression, value: handler.compress(binary) }
+        else
+          { value: binary }
+        end
+      end
+
+      def compress(object)
         COMPRESSION_HANDLERS.fetch(compression).compress(object)
       end
 
       def decompress(bytes, compression)
-        COMPRESSION_HANDLERS.fetch(compression).decompress(bytes)
+        if compression.nil?
+          Marshal.load(bytes)
+        else
+          COMPRESSION_HANDLERS.fetch(compression).decompress(bytes)
+        end
       end
 
       def from_record(record)
