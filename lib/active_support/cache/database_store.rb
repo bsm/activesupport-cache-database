@@ -88,7 +88,6 @@ module ActiveSupport
 
         entry = Entry.new(amount, **options.merge(version: normalize_version(name, options)))
 
-        # Integer and float entries do not warrant compression so that upsert remains possible with a DB-drive increment
         attrs = { key: normalize_key(name, options), **entry_attributes(entry) }
         scope.upsert(attrs, on_duplicate: Arel.sql(sanitize_sql_array(['value = EXCLUDED.value + ?', amount])))
       end
@@ -169,8 +168,10 @@ module ActiveSupport
       def compression_attributes(value)
         binary = Marshal.dump(value)
 
+        # Integer and float entries do not warrant compression
         if value.is_a?(Numeric)
           { value: binary }
+        # small data set doesn't need compression as well
         elsif @compression && binary.bytesize >= 1024
           handler = COMPRESSION_HANDLERS[@compression]
           { compression: @compression, value: handler.compress(binary) }
