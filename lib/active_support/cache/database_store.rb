@@ -168,11 +168,7 @@ module ActiveSupport
       def compression_attributes(value)
         binary = Marshal.dump(value)
 
-        # Integer and float entries do not warrant compression
-        if value.is_a?(Numeric)
-          { value: binary }
-        # small data set doesn't need compression as well
-        elsif @compression && binary.bytesize >= 1024
+        if @compression && binary.bytesize >= 1024
           handler = COMPRESSION_HANDLERS[@compression]
           { compression: @compression, value: handler.compress(binary) }
         else
