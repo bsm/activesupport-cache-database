@@ -96,7 +96,9 @@ module ActiveSupport
         key = super.to_s
         raise ArgumentError, 'Namespaced key exceeds the length limit' if key && key.bytesize > 255
 
-        key
+        # `key` is actually a BLOB column, with some DBs (such as SQLite) we need to explicitly
+        # tag the string as binary so that Arel can properly escape it for a SELECT query
+        key.b
       end
 
       def read_entry(key, _options = nil)
@@ -105,8 +107,7 @@ module ActiveSupport
 
       def write_entry(key, entry, _options = nil)
         record = @model.where(key: key).first_or_initialize
-        expires_at = Time.zone.at(entry.expires_at) if entry.expires_at
-        record.update! value: Marshal.dump(entry.value), version: entry.version.presence, expires_at: expires_at
+        record.update!(**entry_attributes(entry))
       rescue ActiveRecord::RecordNotUnique
         # If two servers initialize a new record with the same cache key and try to save it,
         # the saves will race. We do not need to ensure a specific save wins, but we do need to ensure
@@ -118,6 +119,19 @@ module ActiveSupport
 
       def delete_entry(key, _options = nil)
         @model.where(key: key).destroy_all
+      end
+
+      def write_multi_entries(hash, **_options)
+        entries = hash.map {|key, entry| { key: key, created_at: Time.zone.now, **entry_attributes(entry) } }
+
+        # In rails 7, we can use update_only not to do anything. But for the sakes of compatibility, we don't use any additional parameters.
+        @model.upsert_all(entries)
+      end
+
+      def entry_attributes(entry)
+        expires_at = Time.zone.at(entry.expires_at) if entry.expires_at
+
+        { value: Marshal.dump(entry.value), version: entry.version.presence, expires_at: expires_at }
       end
 
       def read_multi_entries(names, options)

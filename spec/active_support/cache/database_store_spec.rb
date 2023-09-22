@@ -107,6 +107,21 @@ RSpec.describe ActiveSupport::Cache::DatabaseStore do
     expect { subject.read("#{key}x") }.to raise_error(ArgumentError, /exceeds the length limit/)
   end
 
+  it 'write_multi to insert records with one insert' do
+    insert_queries = []
+    ActiveSupport::Notifications.subscribe('sql.active_record') do |_name, _start, _finish, _id, payload|
+      insert_queries << payload[:sql] if payload[:sql].start_with?('INSERT INTO')
+    end
+    values = { 'test0' => 'test0', 'test1' => 'test1', 'test2' => 'test2' }
+
+    subject.write_multi(values)
+
+    ActiveSupport::Notifications.unsubscribe('sql.active_record')
+
+    expect(subject.read_multi('test0', 'test1', 'test2')).to eq(values)
+    expect(insert_queries.count).to eq(1)
+  end
+
   describe '#cleanup' do
     it 'deletes expired' do
       subject.write('foo', 'bar', expires_in: 10)
