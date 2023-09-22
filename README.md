@@ -38,6 +38,18 @@ To use as a Rails cache store, simply use a new instance.
 config.cache_store = ActiveSupport::Cache::DatabaseStore.new
 ```
 
+## Variable Compression
+By default this gem doesn't use any compression to store records, but there is an option to use `gzip` by providing a "compression" paramater. e.g
+
+
+```
+cache(project, compression: 'gzip') do
+  {code: 'to cache'}
+end
+```
+
+There are some cases, when compression could be skipped - if value is numeric (e.g. increment/decrement counters) and when value is less than 1024 bytes. This is done to avoid unreasonable overhead on performance.
+
 ## Maintenance
 After you have started caching into the database, you will likely see the database size growing significantly. It is crucial to implement an effective strategy to evict the cache from your DB.
 
