@@ -167,12 +167,9 @@ module ActiveSupport
       def compression_attributes(value)
         binary = Marshal.dump(value)
 
-        case value
-        when Numeric
-          return { value: binary }
-        end
-
-        if @compression && binary.bytesize >= 1024
+        if value.is_a?(Numeric)
+          { value: binary }
+        elsif @compression && binary.bytesize >= 1024
           handler = COMPRESSION_HANDLERS[@compression]
           { compression: @compression, value: handler.compress(binary) }
         else
@@ -180,22 +177,16 @@ module ActiveSupport
         end
       end
 
-      def compress(object)
-        COMPRESSION_HANDLERS.fetch(compression).compress(object)
-      end
+      def decompress(record)
+        return Marshal.load(record.value) if record.compression.nil?
 
-      def decompress(bytes, compression)
-        if compression.nil?
-          Marshal.load(bytes)
-        else
-          COMPRESSION_HANDLERS.fetch(compression).decompress(bytes)
-        end
+        COMPRESSION_HANDLERS.fetch(record.compression).decompress(record.value)
       end
 
       def from_record(record)
         return unless record
 
-        entry = Entry.new(decompress(record.value, record.compression), version: record.version)
+        entry = Entry.new(decompress(record), version: record.version)
         entry.expires_at = record.expires_at
         entry
       end
