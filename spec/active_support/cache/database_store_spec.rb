@@ -5,8 +5,8 @@ RSpec.describe ActiveSupport::Cache::DatabaseStore do
   include_examples 'Database cache store with compression', 'plain'
   include_examples 'Database cache store with compression', 'gzip'
 
-  it 'errors out for unsupported compression'  do
-    expect {described_class.new expires_in: 60, compression: 'brotli'}.to raise_error(ArgumentError, 'invalid compression option "brotli"')
+  it 'errors out for unsupported compression' do
+    expect { described_class.new expires_in: 60, compression: 'brotli' }.to raise_error(ArgumentError, 'invalid compression option "brotli"')
   end
 
   it 'reads a cache entry having a different compression setting than the store configuration' do
@@ -39,14 +39,20 @@ RSpec.describe ActiveSupport::Cache::DatabaseStore do
   it 'applies gzip compression to Value larger than 1024 bytes' do
     gzip_store = described_class.new expires_in: 60, compression: 'gzip'
     source_object = {
-      "employees": [
-          {"firstName":"John", "lastName":"Doe", "age": 25, "address": "123 Maple Street, Anytown, Anystate, 12345", "jobTitle": "Software Developer", "startDate": "2010-01-01", "email": "john.doe@example.com", "phone": "123-456-7890"},
-          {"firstName":"Anna", "lastName":"Smith", "age": 30, "address": "456 Oak Avenue, Sometown, Somestate, 67890", "jobTitle": "Product Manager", "startDate": "2012-02-02", "email": "anna.smith@example.com", "phone": "234-567-8901"},
-          {"firstName":"Peter", "lastName":"Jones", "age": 35, "address": "789 Pine Lane, OtherTown, OtherState, 54321", "jobTitle": "Project Manager", "startDate": "2015-03-03", "email": "peter.jones@example.com", "phone": "345-678-9012"},
-          {"firstName":"Maria", "lastName":"Rodriguez", "age": 40, "address": "321 Elm Drive, NewTown, NewState, 21234", "jobTitle": "Database Administrator", "startDate": "2011-04-04", "email": "maria.rodriguez@example.com", "phone": "456-789-0123"},
-          {"firstName":"Paul", "lastName":"Johnson", "age": 45, "address": "654 Cedar Place, SmallTown, SmallState, 12123", "jobTitle": "Systems Administrator", "startDate": "2009-05-05", "email": "paul.johnson@example.com", "phone": "567-890-1234"},
-          {"firstName":"Sandra", "lastName":"Lee", "age": 50, "address": "987 Birch Court, BigTown, BigState, 23241", "jobTitle": "Software Tester", "startDate": "2013-06-06", "email": "sandra.lee@example.com", "phone": "678-901-2345"}
-      ]
+      employees: [
+        { firstName: 'John', lastName: 'Doe', age: 25, address: '123 Maple Street, Anytown, Anystate, 12345', jobTitle: 'Software Developer',
+startDate: '2010-01-01', email: 'john.doe@example.com', phone: '123-456-7890', },
+        { firstName: 'Anna', lastName: 'Smith', age: 30, address: '456 Oak Avenue, Sometown, Somestate, 67890', jobTitle: 'Product Manager',
+startDate: '2012-02-02', email: 'anna.smith@example.com', phone: '234-567-8901', },
+        { firstName: 'Peter', lastName: 'Jones', age: 35, address: '789 Pine Lane, OtherTown, OtherState, 54321', jobTitle: 'Project Manager',
+startDate: '2015-03-03', email: 'peter.jones@example.com', phone: '345-678-9012', },
+        { firstName: 'Maria', lastName: 'Rodriguez', age: 40, address: '321 Elm Drive, NewTown, NewState, 21234', jobTitle: 'Database Administrator',
+startDate: '2011-04-04', email: 'maria.rodriguez@example.com', phone: '456-789-0123', },
+        { firstName: 'Paul', lastName: 'Johnson', age: 45, address: '654 Cedar Place, SmallTown, SmallState, 12123',
+jobTitle: 'Systems Administrator', startDate: '2009-05-05', email: 'paul.johnson@example.com', phone: '567-890-1234', },
+        { firstName: 'Sandra', lastName: 'Lee', age: 50, address: '987 Birch Court, BigTown, BigState, 23241', jobTitle: 'Software Tester',
+startDate: '2013-06-06', email: 'sandra.lee@example.com', phone: '678-901-2345', },
+      ],
     }
 
     gzip_store.write('k3', source_object)
