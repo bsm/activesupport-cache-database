@@ -25,6 +25,9 @@ module ActiveSupport
       def initialize(options = nil)
         @model = (options || {}).delete(:model) || Model
         @compression = (options || {}).delete(:compression)&.to_s
+
+        raise ArgumentError, "invalid compression option #{@compression.inspect}" if @compression && !COMPRESSION_HANDLERS.key?(@compression)
+
         super(options)
       end
 
@@ -186,7 +189,8 @@ module ActiveSupport
       def from_record(record)
         return unless record
 
-        entry = Entry.new(decompress(record), version: record.version)
+        value = decompress(record)
+        entry = Entry.new(value, version: record.version)
         entry.expires_at = record.expires_at
         entry
       end

@@ -5,6 +5,10 @@ RSpec.describe ActiveSupport::Cache::DatabaseStore do
   include_examples 'Database cache store with compression', 'plain'
   include_examples 'Database cache store with compression', 'gzip'
 
+  it 'errors out for unsupported compression'  do
+    expect {described_class.new expires_in: 60, compression: 'brotli'}.to raise_error(ArgumentError, 'invalid compression option "brotli"')
+  end
+
   it 'reads a cache entry having a different compression setting than the store configuration' do
     plain_store = described_class.new expires_in: 60
     gzip_store = described_class.new expires_in: 60, compression: 'gzip'
