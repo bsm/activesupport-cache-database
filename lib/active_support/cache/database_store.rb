@@ -138,7 +138,7 @@ module ActiveSupport
       def entry_attributes(entry)
         expires_at = Time.zone.at(entry.expires_at) if entry.expires_at
 
-        compression_attributes(entry.value).merge(version: entry.version.presence, expires_at: expires_at)
+        compression_attributes(entry.value).update(version: entry.version.presence, expires_at: expires_at)
       end
 
       def read_multi_entries(names, options)
@@ -177,7 +177,7 @@ module ActiveSupport
       end
 
       def decompress(record)
-        return Marshal.load(record.value) if record.compression.nil?
+        return record.value if record.compression.nil?
 
         COMPRESSION_HANDLERS.fetch(record.compression).decompress(record.value)
       end
@@ -185,7 +185,7 @@ module ActiveSupport
       def from_record(record)
         return unless record
 
-        value = decompress(record)
+        value = Marshal.load decompress(record)
         entry = Entry.new(value, version: record.version)
         entry.expires_at = record.expires_at
         entry
