@@ -32,7 +32,7 @@ RSpec.describe ActiveSupport::Cache::DatabaseStore do
     last_inserted_model = ActiveSupport::Cache::DatabaseStore::Model.order('created_at DESC').first!
     expect(last_inserted_model.compression).to be_nil
 
-    ActiveSupport::Cache::DatabaseStore.new.fetch('k3').tap do |entry|
+    described_class.new.fetch('k3').tap do |entry|
       expect(entry).to eq(source_object)
     end
   end
@@ -61,7 +61,7 @@ startDate: '2013-06-06', email: 'sandra.lee@example.com', phone: '678-901-2345',
     last_inserted_model = ActiveSupport::Cache::DatabaseStore::Model.order('created_at DESC').first!
     expect(last_inserted_model.compression).to eq('gzip')
 
-    ActiveSupport::Cache::DatabaseStore.new.fetch('k3').tap do |entry|
+    described_class.new.fetch('k3').tap do |entry|
       expect(entry).to eq(source_object)
     end
   end
@@ -75,7 +75,7 @@ startDate: '2013-06-06', email: 'sandra.lee@example.com', phone: '678-901-2345',
     last_inserted_model = ActiveSupport::Cache::DatabaseStore::Model.order('created_at DESC').first!
     expect(last_inserted_model.compression).to be_nil
 
-    ActiveSupport::Cache::DatabaseStore.new.fetch('k4').tap do |entry|
+    described_class.new.fetch('k4').tap do |entry|
       expect(entry).to eq(source_object)
     end
   end
