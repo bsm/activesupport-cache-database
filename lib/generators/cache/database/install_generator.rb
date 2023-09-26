@@ -7,7 +7,7 @@ module Cache
         include ActiveRecord::Generators::Migration
 
         source_root File.join(__dir__, 'templates')
-        desc 'Add migration for ActiveSupport::Cache::Database'
+        desc 'Add migrations for ActiveSupport::Cache::Database'
 
         def self.next_migration_number(path)
           next_migration_number = current_migration_number(path) + 1
@@ -16,6 +16,7 @@ module Cache
 
         def copy_migrations
           migration_template 'create_table_for_cache.rb', 'db/migrate/create_cache_database.rb'
+          migration_template 'add_cache_compression_column.rb', 'db/migrate/add_cache_compression_column.rb'
         end
       end
     end

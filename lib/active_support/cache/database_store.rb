@@ -1,5 +1,6 @@
 require 'active_support/cache'
 require 'active_record'
+require 'active_support/gzip'
 
 module ActiveSupport
   module Cache
@@ -12,6 +13,8 @@ module ActiveSupport
 
       autoload :Model, 'active_support/cache/database_store/model'
 
+      COMPRESSION_HANDLERS = { 'gzip' => ActiveSupport::Gzip }.freeze
+
       # Advertise cache versioning support.
       def self.supports_cache_versioning?
         true
@@ -21,6 +24,10 @@ module ActiveSupport
       # option options [Class] :model model class. Default: ActiveSupport::Cache::DatabaseStore::Model
       def initialize(options = nil)
         @model = (options || {}).delete(:model) || Model
+        @compression = (options || {}).delete(:compression)&.to_s
+
+        raise ArgumentError, "invalid compression option #{@compression.inspect}" if @compression && !COMPRESSION_HANDLERS.key?(@compression)
+
         super(options)
       end
 
@@ -80,8 +87,8 @@ module ActiveSupport
         end
 
         entry = Entry.new(amount, **options.merge(version: normalize_version(name, options)))
-        expires_at = Time.zone.at(entry.expires_at) if entry.expires_at
-        attrs = { key: normalize_key(name, options), value: Marshal.dump(entry.value), version: entry.version.presence, expires_at: expires_at }
+
+        attrs = { key: normalize_key(name, options), **entry_attributes(entry) }
         scope.upsert(attrs, on_duplicate: Arel.sql(sanitize_sql_array(['value = EXCLUDED.value + ?', amount])))
       end
 
@@ -131,7 +138,7 @@ module ActiveSupport
       def entry_attributes(entry)
         expires_at = Time.zone.at(entry.expires_at) if entry.expires_at
 
-        { value: Marshal.dump(entry.value), version: entry.version.presence, expires_at: expires_at }
+        compression_attributes(entry.value).update(version: entry.version.presence, expires_at: expires_at)
       end
 
       def read_multi_entries(names, options)
@@ -158,10 +165,28 @@ module ActiveSupport
         results
       end
 
+      def compression_attributes(value)
+        binary = Marshal.dump(value)
+
+        if @compression && binary.bytesize >= 1024
+          handler = COMPRESSION_HANDLERS[@compression]
+          { compression: @compression, value: handler.compress(binary) }
+        else
+          { value: binary }
+        end
+      end
+
+      def decompress(record)
+        return record.value if record.compression.nil?
+
+        COMPRESSION_HANDLERS.fetch(record.compression).decompress(record.value)
+      end
+
       def from_record(record)
         return unless record
 
-        entry = Entry.new Marshal.load(record.value), version: record.version
+        value = Marshal.load decompress(record)
+        entry = Entry.new(value, version: record.version)
         entry.expires_at = record.expires_at
         entry
       end
