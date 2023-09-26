@@ -32,8 +32,9 @@ RSpec.describe ActiveSupport::Cache::DatabaseStore do
     last_inserted_model = ActiveSupport::Cache::DatabaseStore::Model.order('created_at DESC').first!
     expect(last_inserted_model.compression).to be_nil
 
-    decompressed_and_demarshaled_obj = Marshal.load(last_inserted_model.value)
-    expect(decompressed_and_demarshaled_obj).to eq(source_object)
+    ActiveSupport::Cache::DatabaseStore.new.fetch('k3').tap do |entry|
+      expect(entry).to eq(source_object)
+    end
   end
 
   it 'applies gzip compression to Value larger than 1024 bytes' do
@@ -60,8 +61,9 @@ startDate: '2013-06-06', email: 'sandra.lee@example.com', phone: '678-901-2345',
     last_inserted_model = ActiveSupport::Cache::DatabaseStore::Model.order('created_at DESC').first!
     expect(last_inserted_model.compression).to eq('gzip')
 
-    decompressed_and_demarshaled_obj = Marshal.load(ActiveSupport::Gzip.decompress(last_inserted_model.value))
-    expect(decompressed_and_demarshaled_obj).to eq(source_object)
+    ActiveSupport::Cache::DatabaseStore.new.fetch('k3').tap do |entry|
+      expect(entry).to eq(source_object)
+    end
   end
 
   it 'uses plain compression if none specified' do
@@ -72,7 +74,9 @@ startDate: '2013-06-06', email: 'sandra.lee@example.com', phone: '678-901-2345',
 
     last_inserted_model = ActiveSupport::Cache::DatabaseStore::Model.order('created_at DESC').first!
     expect(last_inserted_model.compression).to be_nil
-    decompressed_and_demarshaled_obj = Marshal.load(last_inserted_model.value)
-    expect(decompressed_and_demarshaled_obj).to eq(source_object)
+
+    ActiveSupport::Cache::DatabaseStore.new.fetch('k4').tap do |entry|
+      expect(entry).to eq(source_object)
+    end
   end
 end
