@@ -22,7 +22,7 @@ module ActiveSupport
 
       # param [Hash] options options
       # option options [Class] :model (default: ActiveSupport::Cache::DatabaseStore::Model) model class
-      # option options [String] :compression provide (default: nil) "gzip" to compress cache values.
+      # option options [String] :compression (default: nil) Use "gzip" value to compress cache values
       def initialize(options = nil)
         @model = (options || {}).delete(:model) || Model
         @compression = (options || {}).delete(:compression)&.to_s
