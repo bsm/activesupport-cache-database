@@ -1,6 +1,7 @@
 # Changelog
 
-## v0.5.0 (WiP)
+## v0.5.0
+
 ### Added
 - Adding pluggable compression for cache storage (plain and gzip supported out of the box) [#42](https://github.com/bsm/activesupport-cache-database/pull/42)
 - #write_multi to insert cache in a single INSERT statement [#41](https://github.com/bsm/activesupport-cache-database/pull/41)
